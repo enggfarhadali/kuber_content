@@ -1,31 +1,20 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: flask-app
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: flask-app
-  template:
-    metadata:
-      labels:
-        app: flask-app
-    spec:
-      containers:
-        - name: flask-app
-          image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/<REPO_NAME>:latest
-          ports:
-            - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: flask-app-service
-spec:
-  type: LoadBalancer
-  selector:
-    app: flask-app
-  ports:
-    - port: 80
-      targetPort: 80
+version: 0.2
+env:
+  variables:
+    AWS_REGION: us-east-2
+    ECR_REPO: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/<REPO_NAME>
+    CLUSTER_NAME: <CLUSTER_NAME>
+phases:
+  pre_build:
+    commands:
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+  build:
+    commands:
+      - docker build -t $ECR_REPO:latest .
+      - docker push $ECR_REPO:latest
+  post_build:
+    commands:
+      - aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION
+      - kubectl apply -f k8s-deployment.yml
+      - kubectl rollout restart deployment/flask-app
+
