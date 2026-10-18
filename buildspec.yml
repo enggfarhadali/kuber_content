@@ -1,20 +1,31 @@
 version: 0.2
+
 env:
   variables:
     AWS_REGION: us-east-2
+    ECR_REGISTRY: 199865934124.dkr.ecr.us-east-2.amazonaws.com
     ECR_REPO: 199865934124.dkr.ecr.us-east-2.amazonaws.com/kuber_repo
-    CLUSTER_NAME: ali_cluster
+    CLUSTER_NAME: ali-cluster
+
 phases:
+  install:
+    commands:
+      - curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/kubectl
+      - kubectl version --client
+
   pre_build:
     commands:
-      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
   build:
     commands:
       - docker build -t $ECR_REPO:latest .
       - docker push $ECR_REPO:latest
+
   post_build:
     commands:
       - aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION
       - kubectl apply -f k8s.yml
       - kubectl rollout restart deployment/flask-app
-
