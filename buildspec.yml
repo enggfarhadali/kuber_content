@@ -2,8 +2,8 @@ version: 0.2
 env:
   variables:
     AWS_REGION: us-east-2
-    ECR_REPO: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/<REPO_NAME>
-    CLUSTER_NAME: <CLUSTER_NAME>
+    ECR_REPO: 199865934124.dkr.ecr.us-east-2.amazonaws.com/kuber_repo
+    CLUSTER_NAME: ali_cluster
 phases:
   pre_build:
     commands:
