@@ -15,6 +15,6 @@ phases:
   post_build:
     commands:
       - aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION
-      - kubectl apply -f k8s-deployment.yml
+      - kubectl apply -f k8s.yml
       - kubectl rollout restart deployment/flask-app
 
